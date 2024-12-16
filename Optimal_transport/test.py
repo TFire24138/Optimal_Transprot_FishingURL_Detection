@@ -47,36 +47,6 @@ class Net(nn.Module):
         x = self.fc3(x)  # 第三个全连接层
         return x
 
-"""置信度过滤策略生成伪标签"""
-def generate_pseudo_labels(model, data_loader, threshold):
-    model.eval()
-    pseudo_data = []
-    pseudo_labels = []
-    with torch.no_grad():
-        for data in data_loader:
-            inputs = data[0]  # 确保正确解包输入数据
-            outputs = model(inputs)
-            probs = F.softmax(outputs, dim=1)
-            conf, pseudo_label = probs.max(dim=1)
-            mask = conf >= threshold
-            # 调试信息：检查是否有数据超过阈值
-            if torch.sum(mask).item() > 0:
-                pseudo_data.append(inputs[mask])
-                pseudo_labels.append(pseudo_label[mask])
-            # else:
-            #     print("No samples in this batch met the confidence threshold.")
-    # 在连接之前检查列表是否非空
-    if pseudo_data and pseudo_labels:
-        total_pseudo_data = torch.cat(pseudo_data, dim=0)
-        total_pseudo_labels = torch.cat(pseudo_labels, dim=0)
-        print(f"Generated {len(total_pseudo_data)} pseudo-labeled samples.")
-        return DataLoader(TensorDataset(total_pseudo_data, total_pseudo_labels), batch_size=100, shuffle=True)
-    else:
-        # print("No pseudo-labeled samples generated. Consider lowering the threshold.")
-        return None
-
-
-
 # 创建模型实例
 model = Net()
 
@@ -96,7 +66,7 @@ best_models = {}  # 存储最好的三个模型的评价指标
 best_epochs = []  # 存储最好的三个模型的epoch值
 for epoch in model_epochs:
     # 加载模型
-    model.load_state_dict(torch.load(f"40_lnn_semi_epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
+    model.load_state_dict(torch.load(f"./25_ot_semi/epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
     model.eval()
     with torch.no_grad():
         # 进行预测
@@ -116,14 +86,14 @@ for epoch in model_epochs:
         print(f'F1 Score: {f1}')
         print('---')
 
-# 找到最好的三个模型
-for epoch, scores in sorted(best_models.items(), key=lambda item: item[1][2], reverse=True)[:3]:
-    best_epochs.append(epoch)
-
-
-#删除不是最好的三个模型的其他模型文件
-import os
-for epoch in model_epochs:
-    if epoch not in best_epochs:
-        os.remove(f"40_lnn_semi_epoch_{epoch}.pth")
-        print(f"已经删除{epoch}的模型")
+# # 找到最好的三个模型
+# for epoch, scores in sorted(best_models.items(), key=lambda item: item[1][2], reverse=True)[:3]:
+#     best_epochs.append(epoch)
+#
+#
+# #删除不是最好的三个模型的其他模型文件
+# import os
+# for epoch in model_epochs:
+#     if epoch not in best_epochs:
+#         os.remove(f"40_lnn_semi_epoch_{epoch}.pth")
+#         print(f"已经删除{epoch}的模型")
