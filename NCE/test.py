@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import torch.nn.functional as F
 from sklearn.metrics import precision_score, recall_score, f1_score
 """定义标签平滑损失"""
-def noisy_ce_loss(pred, target, noise_rate=0.25):
+def noisy_ce_loss(pred, target, noise_rate=0.4):
     """
     Noisy Cross-Entropy Loss with noise rate regularization.
     Args:
@@ -24,8 +24,6 @@ def noisy_ce_loss(pred, target, noise_rate=0.25):
     # Adjust loss by considering noisy label
     loss = F.binary_cross_entropy_with_logits(pred, target_one_hot.float())
     return loss * (1 - noise_rate)  # Weight the loss by noise rate
-
-
 
 """定义一维卷积神经网络模型"""
 # class Net(nn.Module):
@@ -71,9 +69,6 @@ class Net(nn.Module):
 model = Net()
 print(model)
 
-
-#加载保存的模型权重
-model = Net()
 # 加载测试数据
 test_data = pd.read_csv("../splited_data/test_data.csv")
 test_data = test_data.iloc[:, 1:]
@@ -88,7 +83,7 @@ best_models = {}  # 存储最好的三个模型的评价指标
 best_epochs = []  # 存储最好的三个模型的epoch值
 for epoch in model_epochs:
     # 加载模型
-    model.load_state_dict(torch.load(f"40_lnn_epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
+    model.load_state_dict(torch.load(f"./result/40/epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
     model.eval()
     with torch.no_grad():
         # 进行预测
@@ -108,15 +103,15 @@ for epoch in model_epochs:
         print(f'F1 Score: {f1}')
         print('---')
 
-
-# 找到最好的三个模型
-for epoch, scores in sorted(best_models.items(), key=lambda item: item[1][2], reverse=True)[:3]:
-    best_epochs.append(epoch)
-
-
-# 删除不是最好的三个模型的其他模型文件
-import os
-for epoch in model_epochs:
-    if epoch not in best_epochs:
-        os.remove(f"40_lnn_epoch_{epoch}.pth")
-        print(f"已经删除{epoch}的模型")
+#
+# # 找到最好的三个模型
+# for epoch, scores in sorted(best_models.items(), key=lambda item: item[1][2], reverse=True)[:3]:
+#     best_epochs.append(epoch)
+#
+#
+# # 删除不是最好的三个模型的其他模型文件
+# import os
+# for epoch in model_epochs:
+#     if epoch not in best_epochs:
+#         os.remove(f"40_lnn_epoch_{epoch}.pth")
+#         print(f"已经删除{epoch}的模型")

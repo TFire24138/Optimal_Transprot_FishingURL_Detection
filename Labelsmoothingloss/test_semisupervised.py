@@ -92,15 +92,8 @@ def generate_pseudo_labels(model, data_loader, threshold):
 # 创建模型实例
 model = Net()
 num_classes = 2
-criterion = LabelSmoothingLoss(num_classes=num_classes, smoothing=0.11)
-optimizer = optim.Adam(model.parameters(), lr=0.0015)
-# 引入余弦退火学习率调度器
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.0005)
-# 半监督训练
-num_epochs = 100
-initial_threshold = 0.85
-threshold_step = 0.01
-model=Net()
+criterion = LabelSmoothingLoss(num_classes=num_classes, smoothing=0.25)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 #加载测试数据
 test_file_path = r'E:\大学作业\大创\模型\第二期工作\splited_data\test_data.csv'
@@ -118,7 +111,7 @@ best_models = {}  # 存储最好的三个模型的评价指标
 best_epochs = []  # 存储最好的三个模型的epoch值
 for epoch in model_epochs:
     # 加载模型
-    model.load_state_dict(torch.load(f"40_lnn_semi_epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
+    model.load_state_dict(torch.load(f"./result/40_semi/epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
     model.eval()
     with torch.no_grad():
         # 进行预测
@@ -137,15 +130,3 @@ for epoch in model_epochs:
         print(f'Recall: {recall}')
         print(f'F1 Score: {f1}')
         print('---')
-
-# 找到最好的三个模型
-for epoch, scores in sorted(best_models.items(), key=lambda item: item[1][2], reverse=True)[:3]:
-    best_epochs.append(epoch)
-
-
-# 删除不是最好的三个模型的其他模型文件
-import os
-for epoch in model_epochs:
-    if epoch not in best_epochs:
-        os.remove(f"40_lnn_semi_epoch_{epoch}.pth")
-        print(f"已经删除{epoch}的模型")

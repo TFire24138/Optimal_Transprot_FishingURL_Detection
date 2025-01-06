@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from sklearn.metrics import precision_score, recall_score, f1_score
 import os
 """定义Focal Loss"""
-def noisy_ce_loss(pred, target, noise_rate=0.1):
+def noisy_ce_loss(pred, target, noise_rate=0.4):
     """
     Noisy Cross-Entropy Loss with noise rate regularization.
     Args:
@@ -53,7 +53,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # 假设输入的特征数量是85
         self.fc1 = nn.Linear(85, 128)  # 第一个全连接层，输入特征85，输出128个特征
-        self.dropout = nn.Dropout(p=0.19)  # Dropout层
+        self.dropout = nn.Dropout(p=0.15)  # Dropout层
         self.fc2 = nn.Linear(128, 64)  # 第二个全连接层，输入特征128，输出64个特征
         self.fc3 = nn.Linear(64, 2)  # 第三个全连接层，输入特征64，输出2个特征（分类数）
     def forward(self, x):
@@ -95,8 +95,9 @@ def generate_pseudo_labels(model, data_loader, threshold):
 
 
 """加载有标签数据"""
-train_file_path = r'E:\大学作业\大创\模型\第二期工作\splited_data\train_data_version_10.csv'
+train_file_path = r'E:\大学作业\大创\模型\第二期工作\splited_data\train_data_version_40.csv'
 train_data = pd.read_csv(train_file_path)
+train_data = train_data.head(20000)#少用点数据
 train_data = train_data.iloc[:, 1:]
 labels = train_data.pop("label")
 numpy_features = train_data.values
@@ -116,9 +117,9 @@ unlabeled_loader = DataLoader(unlabeled_dataset, batch_size=100, shuffle=False)
 # 创建模型实例
 model = Net()
 num_classes = 2
-optimizer = optim.Adam(model.parameters(), lr=0.0015)
+optimizer = optim.Adam(model.parameters(), lr=0.003)
 # 引入余弦退火学习率调度器
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.0008)
+#scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.0008)
 # 半监督训练
 num_epochs = 100
 initial_threshold = 0.8
@@ -132,7 +133,7 @@ for epoch in range(num_epochs):
         loss = noisy_ce_loss(output, target.long())
         loss.backward()
         optimizer.step()
-    scheduler.step()
+    #scheduler.step()
     if (epoch+1)%2==0:
         print(f"完成第{epoch}个epoch的训练")
     """第一段训练"""
@@ -152,8 +153,8 @@ for epoch in range(num_epochs):
     """第二段训练"""
     if (epoch+1)>60:
         current_threshold = initial_threshold + (epoch // 10) * threshold_step * 2
-        if current_threshold > 0.98:
-            current_threshold = 0.98
+        if current_threshold > 0.95:
+            current_threshold = 0.95
         pseudo_loader = generate_pseudo_labels(model, unlabeled_loader, threshold=current_threshold)
         if pseudo_loader is not None:
             print(f"Epoch [{epoch + 1}/{num_epochs}], 使用伪标签数据进行训练")
@@ -166,7 +167,11 @@ for epoch in range(num_epochs):
     # 每10个epoch更新一次无标签数据集的伪标签
     if (epoch + 1) % 10 == 0:
         print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
-        torch.save(model.state_dict(), f'./10_lnn_semi_epoch_{epoch}.pth')
+        save_dir = './result/40_semi'
+        import os
+        os.makedirs(save_dir, exist_ok=True)
+        # 保存模型
+        torch.save(model.state_dict(), os.path.join(save_dir, f'epoch_{epoch}.pth'))
 
 
 

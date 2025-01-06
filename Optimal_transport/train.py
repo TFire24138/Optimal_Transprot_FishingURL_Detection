@@ -1,4 +1,4 @@
-from utils import train
+from utils import train_model
 import pandas as pd
 import os
 import torch
@@ -25,8 +25,9 @@ class Net(nn.Module):
         return x
 
 # 加载有标签数据
-train_data = pd.read_csv("../splited_data/train_data_version_25.csv")
+train_data = pd.read_csv("../splited_data/train_data_version_10.csv")
 train_data = train_data.iloc[:, 1:]  # 去掉第一列索引
+train_data = train_data.head(20000)#少用点数据
 labels = train_data.pop("label")
 numpy_features = train_data.values
 tensor_features = torch.from_numpy(numpy_features).float()
@@ -37,7 +38,7 @@ train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
 # 加载无标签数据
 unlabeled_data = pd.read_csv("../splited_data/train_data_nolabel.csv")
 unlabeled_data = unlabeled_data.iloc[:, 2:]  # 去掉 URL 和标签列
-unlabeled_data = unlabeled_data.head(10000)
+#unlabeled_data = unlabeled_data.head(10000)
 numpy_unlabeled_features = unlabeled_data.values
 tensor_unlabeled_features = torch.from_numpy(numpy_unlabeled_features).float()
 unlabeled_dataset = TensorDataset(tensor_unlabeled_features)
@@ -48,20 +49,20 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 model = Net().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.0005)
+#scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.003)
 
 num_epochs = 100
 initial_threshold = 0.8
 threshold_step = 0.01
 # 训练模型
 for epoch in range(num_epochs):
-    epoch_loss = train(model, train_loader, unlabeled_loader, optimizer, device, epoch, logit_scale=1.0)
+    epoch_loss = train_model(model, train_loader, unlabeled_loader, optimizer, device, epoch, logit_scale=5.0)
     epoch_loss_value = epoch_loss.item()
     print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss_value:.4f}")
-    scheduler.step()
+    #scheduler.step()#调整学习率
     if (epoch + 1) % 10 == 0:
         # 确保文件夹存在，如果不存在则创建
-        save_dir = './25_ot_semi'
+        save_dir = './result/10_ot_semi'
         os.makedirs(save_dir, exist_ok=True)
         # 保存模型
         torch.save(model.state_dict(), os.path.join(save_dir, f'epoch_{epoch}.pth'))

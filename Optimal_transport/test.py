@@ -36,7 +36,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # 假设输入的特征数量是85
         self.fc1 = nn.Linear(85, 128)  # 第一个全连接层，输入特征85，输出128个特征
-        self.dropout = nn.Dropout(p=0.19)  # Dropout层
+        self.dropout = nn.Dropout(p=0.15)  # Dropout层
         self.fc2 = nn.Linear(128, 64)  # 第二个全连接层，输入特征128，输出64个特征
         self.fc3 = nn.Linear(64, 2)  # 第三个全连接层，输入特征64，输出2个特征（分类数）
     def forward(self, x):
@@ -66,7 +66,7 @@ best_models = {}  # 存储最好的三个模型的评价指标
 best_epochs = []  # 存储最好的三个模型的epoch值
 for epoch in model_epochs:
     # 加载模型
-    model.load_state_dict(torch.load(f"./25_ot_semi/epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
+    model.load_state_dict(torch.load(f"./result/10_ot_semi/epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
     model.eval()
     with torch.no_grad():
         # 进行预测

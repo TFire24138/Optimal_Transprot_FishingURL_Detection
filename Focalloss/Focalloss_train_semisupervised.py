@@ -88,6 +88,7 @@ def generate_pseudo_labels(model, data_loader, threshold):
 
 """加载有标签数据"""
 train_data = pd.read_csv("../splited_data/train_data_version_40.csv")
+train_data = train_data.head(20000)#少用点数据
 train_data = train_data.iloc[:, 1:]
 labels = train_data.pop("label")
 numpy_features = train_data.values
@@ -106,9 +107,9 @@ unlabeled_loader = DataLoader(unlabeled_dataset, batch_size=100, shuffle=False)
 # 创建模型实例
 model = Net()
 criterion = FocalLoss(alpha=1, gamma=2)  # Focal Loss
-optimizer = optim.Adam(model.parameters(), lr=0.0015)
+optimizer = optim.Adam(model.parameters(), lr=0.003)
 # 引入余弦退火学习率调度器
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.0005)
+#scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.0005)
 # 半监督训练
 num_epochs = 100
 initial_threshold = 0.8
@@ -122,7 +123,7 @@ for epoch in range(num_epochs):
         loss = criterion(output, target.long())
         loss.backward()
         optimizer.step()
-    scheduler.step()
+    #scheduler.step()
     if (epoch+1)%2==0:
         print(f"完成第{epoch}个epoch的训练")
     """第一段训练"""
@@ -156,7 +157,11 @@ for epoch in range(num_epochs):
     # 每10个epoch更新一次无标签数据集的伪标签
     if (epoch + 1) % 10 == 0:
         print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
-        torch.save(model.state_dict(), f'./40_lnn_semi_epoch_{epoch}.pth')
+        save_dir = './result/40_semi'
+        import os
+        os.makedirs(save_dir, exist_ok=True)
+        # 保存模型
+        torch.save(model.state_dict(), os.path.join(save_dir, f'epoch_{epoch}.pth'))
 
 
 

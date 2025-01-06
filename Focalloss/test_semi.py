@@ -83,7 +83,7 @@ best_models = {}  # 存储最好的三个模型的评价指标
 best_epochs = []  # 存储最好的三个模型的epoch值
 for epoch in model_epochs:
     # 加载模型
-    model.load_state_dict(torch.load(f"40_lnn_semi_epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
+    model.load_state_dict(torch.load(f"./result/40_semi/epoch_{epoch}.pth", map_location=torch.device('cpu'), weights_only=True))
     model.eval()
     with torch.no_grad():
         # 进行预测
@@ -103,15 +103,3 @@ for epoch in model_epochs:
         print(f'F1 Score: {f1}')
         print('---')
 
-
-# 找到最好的三个模型
-for epoch, scores in sorted(best_models.items(), key=lambda item: item[1][2], reverse=True)[:3]:
-    best_epochs.append(epoch)
-
-
-# 删除不是最好的三个模型的其他模型文件
-import os
-for epoch in model_epochs:
-    if epoch not in best_epochs:
-        os.remove(f"40_lnn_semi_epoch_{epoch}.pth")
-        print(f"已经删除{epoch}的模型")

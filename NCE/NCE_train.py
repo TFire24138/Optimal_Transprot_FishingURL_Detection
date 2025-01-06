@@ -24,7 +24,6 @@ def noisy_ce_loss(pred, target, noise_rate=0.4):
     loss = F.binary_cross_entropy_with_logits(pred, target_one_hot.float())
     return loss * (1 - noise_rate)  # Weight the loss by noise rate
 
-
 """定义一维卷积神经网络模型"""
 # class Net(nn.Module):
 #     def __init__(self):
@@ -54,7 +53,7 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # 假设输入的特征数量是85
         self.fc1 = nn.Linear(85, 128)  # 第一个全连接层，输入特征85，输出128个特征
-        self.dropout = nn.Dropout(p=0.19)  # Dropout层
+        self.dropout = nn.Dropout(p=0.15)  # Dropout层
         self.fc2 = nn.Linear(128, 64)  # 第二个全连接层，输入特征128，输出64个特征
         self.fc3 = nn.Linear(64, 2)  # 第三个全连接层，输入特征64，输出2个特征（分类数）
     def forward(self, x):
@@ -71,10 +70,11 @@ print(model)
 # 使用标签平滑和焦点损失
 num_classes = 2
 
-optimizer = optim.Adam(model.parameters(), lr=0.0025)
+optimizer = optim.Adam(model.parameters(), lr=0.003)
 #读取数据
 train_data = pd.read_csv("../splited_data/train_data_version_40.csv")
 train_data = train_data.iloc[:, 1:]
+train_data = train_data.head(20000)#少用点数据
 labels = train_data.pop("label")
 numpy_features = train_data.values
 tensor_features = torch.from_numpy(numpy_features).float()
@@ -95,6 +95,10 @@ for epoch in range(num_epochs):
     # 每10个epoch进行一次数据过滤
     if (epoch + 1) % 10 == 0:
         print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
-        torch.save(model.state_dict(), './40_lnn_epoch_{}.pth'.format(epoch))
+        save_dir = './result/40'
+        import os
+        os.makedirs(save_dir, exist_ok=True)
+        # 保存模型
+        torch.save(model.state_dict(), os.path.join(save_dir, f'epoch_{epoch}.pth'))
 
 print("over!")
