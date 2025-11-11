@@ -32,7 +32,7 @@
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/TFire24138/Optimal_Transprot_FishingURL_Detection.git
 cd OTPhish
 ```
 
