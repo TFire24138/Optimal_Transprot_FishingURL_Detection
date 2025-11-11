@@ -51,12 +51,7 @@ This project uses the **Phishing_URL** dataset, **collected by our team** and pu
 
 * 🧾 Dataset page: [https://huggingface.co/datasets/TFIRE24138/Phishing_URL](https://huggingface.co/datasets/TFIRE24138/Phishing_URL)
 
-Download and place the dataset under `data/phishing_url` (or update the path in configuration):
-
-```bash
-# Example using Hugging Face datasets library
-python scripts/download_hf_dataset.py --dst data/phishing_url
-```
+Download and update the data path. 
 
 ### 4️⃣ Train
 
