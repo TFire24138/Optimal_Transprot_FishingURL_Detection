@@ -1,6 +1,6 @@
 # 🚀 OTPhish
 
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/) [![Dataset](https://img.shields.io/badge/dataset-Phishing_URL-orange.svg)](https://huggingface.co/datasets/TFIRE24138/Phishing_URL) [![Status](https://img.shields.io/badge/status-Experimental-yellow.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/) [![Dataset](https://img.shields.io/badge/dataset-Phishing_URL-orange.svg)](https://huggingface.co/datasets/TFIRE24138/Phishing_URL) [![Status](https://img.shields.io/badge/status-Experimental-yellow.svg)]()
 
 **OTPhish — Optimal Transport powered Semi-Supervised Phishing Detection**
 
